@@ -128,12 +128,11 @@ namespace GC_C4_03_20_2023
                 points[points.Count - 1],
                 points[points.Count - 2]
             };
-
             j = 2;
             for(int i = points.Count - 3; i >= 0; i--)
             {
                 Linf.Add(points[i]);
-                while (Linf.Count > 2 && !IsRight(Linf[j], Linf[j - 1], Linf[j - 2]))
+                while(Linf.Count > 2 && !IsRight(Linf[j], Linf[j - 1], Linf[j - 2]))
                 {
                     Linf.Remove(Linf[j - 1]);
                     j--;
