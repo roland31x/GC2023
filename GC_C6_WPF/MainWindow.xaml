@@ -1,0 +1,16 @@
+﻿<Window x:Class="GC_C6_WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GC_C6_WPF"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Canvas x:Name="BigCanvas">
+        <Canvas x:Name="MainCanvas" Height="800" Width="800"></Canvas>
+        <Button Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
+        <Line Stroke="Aquamarine" Width="380" Height="240" X1="2"></Line>
+        <Button Content="Convex Triangulate" Canvas.Left="668" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="TR_Click"/>
+    </Canvas>
+</Window>
