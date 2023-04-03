@@ -43,7 +43,7 @@ namespace GC_C6_WPF
                 double y = e.GetPosition(this).Y;
                 double x = e.GetPosition(this).X;
                 Point clicked = new Point(x, y);
-                HoverLine(points.Last(), clicked, Colors.Coral);                   
+                last = HoverLine(points.Last(), clicked, Colors.Coral);                   
             }
         }
 
@@ -53,13 +53,7 @@ namespace GC_C6_WPF
             {
                 double y = e.GetPosition(this).Y;
                 double x = e.GetPosition(this).X;
-                Ellipse c = new Ellipse()
-                {
-                    Width = 5,
-                    Height = 5,
-                    Fill = new SolidColorBrush(Colors.Black),
-                    Stroke = new SolidColorBrush(Colors.Black),
-                };
+
                 if (points.Count == 0)
                 {
                     Ellipse st = new Ellipse()
@@ -77,13 +71,14 @@ namespace GC_C6_WPF
                     MainCanvas.Children.Add(st);
                     Canvas.SetZIndex(st, 1);
                     set = st;
-                    c.MouseDown += Finish_Click;
+                    
                 }
-                
-                Canvas.SetTop(c, y - c.Width / 2);
-                Canvas.SetLeft(c, x - c.Height / 2);
-                MainCanvas.Children.Add(c);
-                Canvas.SetZIndex(c, 2);
+                if(points.Count == 0)
+                {
+                    DrawCircle(5, x, y).MouseDown += Finish_Click;
+                }
+                else DrawCircle(5, x, y);
+               
                 Point clicked = new Point(x, y);
                 if (points.Count > 0)
                 {
@@ -92,7 +87,21 @@ namespace GC_C6_WPF
                 points.Add(clicked);
             }          
         }
-
+        private Ellipse DrawCircle(double width, double x, double y)
+        {           
+            Ellipse c = new Ellipse()
+            {
+                Width = width,
+                Height = width,
+                Fill = new SolidColorBrush(Colors.Black),
+                Stroke = new SolidColorBrush(Colors.Black),
+            };
+            Canvas.SetTop(c, y - c.Width / 2);
+            Canvas.SetLeft(c, x - c.Height / 2);
+            MainCanvas.Children.Add(c);
+            Canvas.SetZIndex(c, 2);
+            return c;
+        }
         private void St_MouseLeave(object sender, MouseEventArgs e)
         {
             set.Fill = new SolidColorBrush(Colors.Orange);
@@ -111,7 +120,7 @@ namespace GC_C6_WPF
             MainCanvas.Children.Remove(last);
             MainCanvas.Children.Remove(set);
         }
-        void DrawLine(Point p, Point q, Color c)
+        Line DrawLine(Point p, Point q, Color c)
         {
             Line l = new Line()
             {
@@ -124,8 +133,9 @@ namespace GC_C6_WPF
                 Fill = new SolidColorBrush(c),
             };
             MainCanvas.Children.Add(l);
+            return l;
         }
-        void HoverLine(Point p, Point q, Color c)
+        Line HoverLine(Point p, Point q, Color c)
         {
             Line l = new Line()
             {
@@ -140,7 +150,7 @@ namespace GC_C6_WPF
             l.MouseDown += MainWindow_MouseDown;
             MainCanvas.Children.Add(l);
             Canvas.SetZIndex(l, -1);
-            last = l;
+            return l;
         }
 
         private void TR_Click(object sender, RoutedEventArgs e)
