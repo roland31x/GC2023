@@ -140,9 +140,9 @@ namespace GC_C6_WPF
             Line l = new Line()
             {
                 X1 = p.X,
-                X2 = q.X - 1,
+                X2 = q.X,
                 Y1 = p.Y,
-                Y2 = q.Y - 1,
+                Y2 = q.Y,
                 StrokeThickness = 2,
                 Stroke = new SolidColorBrush(c),
                 Fill = new SolidColorBrush(c),
@@ -158,7 +158,8 @@ namespace GC_C6_WPF
             {
                 done = true;
                 Random rng = new Random();
-                int n = 100;
+                int n = 10;
+
                 for (int i = 0; i < n; i++)
                 {
                     double x = rng.Next(100, (int)Width - 100);
@@ -234,9 +235,9 @@ namespace GC_C6_WPF
             double Det = p.X * q.Y + p.Y * r.X + q.X * r.Y - r.X * q.Y - r.Y * p.X - q.X * p.Y;
             if (Det < 0)
             {
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
         private void Reset_Click(object sender, RoutedEventArgs e)
@@ -244,6 +245,106 @@ namespace GC_C6_WPF
             points = new List<Point>();
             done = false;
             MainCanvas.Children.Clear();
+        }
+
+        private async void PolyTriangulate(object sender, RoutedEventArgs e)
+        {
+            int n = points.Count;
+            //for(int i = 0; i < points.Count; i++)
+            //{
+            //    for(int j = 0; j < points.Count; j++)
+            //    {
+            //        if()
+            //    }
+            //}
+            List<Segment> segs = new List<Segment>();
+            for(int i = 0; i < n - 1; i++)
+            {
+                for(int j = 0; j < n; j++)
+                {
+                    if(j == i || j == i - 1 || j == i + 1)
+                    {
+                        continue;
+                    }
+                    int next = j % n;
+                    if(i == 0 && j == n - 1)
+                    {
+                        break;
+                    }
+                    bool ok = true;
+                    Segment toCheck = new Segment(points[i], points[next]);
+                    Line drew = DrawLine(toCheck.p, toCheck.q, Colors.Red);
+                    for (int k = 0; k < segs.Count; k++)
+                    {
+                        if(toCheck.p == segs[k].p || toCheck.p == segs[k].q || toCheck.q == segs[k].p || toCheck.q == segs[k].q)
+                        {
+                            continue;
+                        }
+                        if (toCheck.Intersects(segs[k]))
+                        {
+                            ok = false;
+                            break;
+                        }
+                        
+                    }
+                    for(int k = 0; k < points.Count; k++)
+                    {
+                        if(k == i || k == next || (k + 1) % n == next || (k + 1) % n == i)
+                        {
+                            continue;
+                        }
+                        if (toCheck.Intersects(new Segment(points[k], points[(k + 1) % n])))
+                        {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    int prev = i - 1;
+                    if(prev < 0)
+                    {
+                        prev = n - 1;
+                    }
+                    if (IsLeft(points[i + 1], points[i], points[prev]))
+                    {
+                        Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
+                        helpppp.Fill = Brushes.Red;
+                        drew.Fill = Brushes.Red;
+                        if (!(IsLeft(points[i + 1], points[i], points[j]) && IsLeft(points[j], points[i], points[prev])))
+                        {
+                            ok = false;
+                        }
+                        
+                    }
+                    else
+                    {
+                        Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
+                        helpppp.Fill = Brushes.Blue;
+                        drew.Fill = Brushes.Blue;
+                        if (!IsLeft(points[i + 1], points[i], points[next]) && !IsLeft(points[next], points[i], points[prev]))
+                        {
+                            ok = false;
+                        }
+                    }
+                    await Task.Delay(50);
+                    if (ok)
+                    {
+                        segs.Add(toCheck);
+                    }
+                    else
+                    {                       
+                        MainCanvas.Children.Remove(drew);
+                    }
+                    
+                }
+                //if(segs.Count == n - 3)
+                //{
+                //    break;
+                //}
+            }
+            for(int i = 0; i < segs.Count; i++)
+            {
+                DrawLine(segs[i].q, segs[i].p, Colors.Black);
+            }
         }
     }
     class Segment

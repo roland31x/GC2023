@@ -8,8 +8,10 @@
         Title="MainWindow" Height="800" Width="800"
         WindowStartupLocation="CenterScreen">
     <Canvas x:Name="BigCanvas">
-        <Canvas x:Name="MainCanvas" Height="800" Width="800"></Canvas>
-
+        <Canvas x:Name="MainCanvas" Height="800" Width="800">
+           
+        </Canvas>
+        <Button Content="Polygon Triangulate" Canvas.Left="530" Canvas.Top="10" Background="#FFFBFF00" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PolyTriangulate"/>
         <Button Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
         <Line Stroke="Aquamarine" Width="380" Height="240" X1="2"></Line>
         <Button Content="Convex Triangulate" Canvas.Left="658" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="TR_Click" Background="#FFF597FF" Width="114"/>
