@@ -8,10 +8,12 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Input.Manipulations;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GC_C6_WPF
 {
@@ -21,7 +23,8 @@ namespace GC_C6_WPF
     public partial class MainWindow : Window
     {
         List<Point> points = new List<Point>();
-        
+        List<Triangle> triangles = new List<Triangle>();
+
         Line? last;
         Ellipse? set;
         bool done = false;
@@ -98,6 +101,21 @@ namespace GC_C6_WPF
             };
             Canvas.SetTop(c, y - c.Width / 2);
             Canvas.SetLeft(c, x - c.Height / 2);
+            MainCanvas.Children.Add(c);
+            Canvas.SetZIndex(c, 2);
+            return c;
+        }
+        private Ellipse DrawCircle(double width, Point p, Color cl)
+        {
+            Ellipse c = new Ellipse()
+            {
+                Width = width,
+                Height = width,
+                Fill = new SolidColorBrush(cl),
+                Stroke = new SolidColorBrush(cl),
+            };
+            Canvas.SetTop(c, p.Y - c.Width / 2);
+            Canvas.SetLeft(c, p.X - c.Height / 2);
             MainCanvas.Children.Add(c);
             Canvas.SetZIndex(c, 2);
             return c;
@@ -345,6 +363,180 @@ namespace GC_C6_WPF
             {
                 DrawLine(segs[i].q, segs[i].p, Colors.Black);
             }
+        }
+
+        private async void Otectomie(object sender, RoutedEventArgs e)
+        {
+            List<Point> tempPoly = new List<Point>();
+
+            List<Segment> segs = new List<Segment>();
+            foreach(Point p in points)
+            {
+                tempPoly.Add(p);
+            }
+            int n = tempPoly.Count;
+            while(n > 3)
+            {
+                for (int i = 0; i < tempPoly.Count; i++)
+                {
+                    int next = ( i + 2 ) % n;
+                    bool ok = true;
+                    Segment toCheck = new Segment(tempPoly[i], tempPoly[next]);
+                    Line drew = DrawLine(toCheck.p, toCheck.q, Colors.Red);
+                    for (int k = 0; k < segs.Count; k++)
+                    {
+                        if (toCheck.p == segs[k].p || toCheck.p == segs[k].q || toCheck.q == segs[k].p || toCheck.q == segs[k].q)
+                        {
+                            continue;
+                        }
+                        if (toCheck.Intersects(segs[k]))
+                        {
+                            ok = false;
+                            break;
+                        }
+
+                    }
+                    for (int k = 0; k < tempPoly.Count; k++)
+                    {
+                        if (k == i || k == next || (k + 1) % n == next || (k + 1) % n == i)
+                        {
+                            continue;
+                        }
+                        if (toCheck.Intersects(new Segment(tempPoly[k], tempPoly[(k + 1) % n])))
+                        {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    int prev = i - 1;
+                    if (prev < 0)
+                    {
+                        prev = n - 1;
+                    }
+                    if (IsLeft(tempPoly[(i + 1) % n], tempPoly[i], tempPoly[prev]))
+                    {
+                        //Ellipse helpppp = DrawCircle(10, tempPoly[i].X, tempPoly[i].Y);
+                        //helpppp.Fill = Brushes.Red;
+                        drew.Stroke = Brushes.Red;
+                        if (!(IsLeft(tempPoly[(i + 1) % n], tempPoly[i], tempPoly[next]) && IsLeft(tempPoly[next], tempPoly[i], tempPoly[prev])))
+                        {
+                            ok = false;
+                        }
+
+                    }
+                    else
+                    {
+                        //Ellipse helpppp = DrawCircle(10, tempPoly[i].X, tempPoly[i].Y);
+                        //helpppp.Fill = Brushes.Blue;
+                        drew.Stroke = Brushes.Blue;
+                        if (!IsLeft(tempPoly[(i + 1) % n], tempPoly[i], tempPoly[next]) && !IsLeft(tempPoly[next], tempPoly[i], tempPoly[prev]))
+                        {
+                            ok = false;
+                        }
+                    }
+                    await Task.Delay(50);
+                    if (ok)
+                    {
+                        triangles.Add(new Triangle(toCheck.q, toCheck.p, tempPoly[(i + 1) % n]));
+                        segs.Add(toCheck);
+                        n--;
+                        tempPoly.Remove(tempPoly[(i + 1) % n]);
+                        MainCanvas.Children.Remove(drew);
+                        DrawLine(toCheck.q, toCheck.p, Colors.Black);                     
+                        break;
+                    }
+                    else
+                    {
+                        MainCanvas.Children.Remove(drew);
+                    }
+
+                }
+                
+            }
+            triangles.Add(new Triangle(tempPoly[0], tempPoly[1], tempPoly[2]));
+        }
+        private void ColorUp()
+        {
+            int[] tag = new int[points.Count];
+            tag[points.IndexOf(triangles.Last().pts[0])] = 1;
+            DrawCircle(10, triangles.Last().pts[0], Colors.Red);
+            tag[points.IndexOf(triangles.Last().pts[1])] = 2;
+            DrawCircle(10, triangles.Last().pts[1], Colors.LimeGreen);
+            tag[points.IndexOf(triangles.Last().pts[2])] = 3;
+            DrawCircle(10, triangles.Last().pts[2], Colors.Blue);
+            int n = triangles.Count - 1;
+            while(n > 0)
+            {
+                for (int i = triangles.Count - 2; i >= 0; i--)
+                {
+                    int howmanymissing = 0;
+                    int j = 0;
+                    for (int l = 0; l < 3; l++)
+                    {
+                        if (tag[points.IndexOf(triangles[i].pts[l])] == 0)
+                        {
+                            howmanymissing++;
+                            j = l;
+                        }
+                        
+                    }
+                    if (howmanymissing == 1)
+                    {
+                        int alreadytagged = 0;
+                        for (int k = 0; k < 3; k++)
+                        {
+                            if (tag[points.IndexOf(triangles[i].pts[k])] != 0)
+                            {
+                                alreadytagged += tag[points.IndexOf(triangles[i].pts[k])];
+                            }
+                        }
+                        tag[points.IndexOf(triangles[i].pts[j])] = 6 - alreadytagged;
+                        if (tag[points.IndexOf(triangles[i].pts[j])] == 1)
+                        {
+                            DrawCircle(10, triangles[i].pts[j], Colors.Red);
+                        }
+                        if (tag[points.IndexOf(triangles[i].pts[j])] == 2)
+                        {
+                            DrawCircle(10, triangles[i].pts[j], Colors.LimeGreen);
+                        }
+                        if (tag[points.IndexOf(triangles[i].pts[j])] == 3)
+                        {
+                            DrawCircle(10, triangles[i].pts[j], Colors.Blue);
+                        }
+                        n--;
+                        break;
+                    }
+                }
+            }          
+        }
+        public double AreaOfAllTriangles()
+        {
+            double area = 0;
+            foreach(Triangle t in triangles)
+            {
+                area += Math.Abs(t.Area());
+            }
+            return area;
+        }
+        private void ColorUpClick(object sender, RoutedEventArgs e)
+        {
+            ColorUp();
+        }
+        private void AreaClick(object sender, RoutedEventArgs e)
+        {
+            Area1Box.Text = AreaOfAllTriangles().ToString();
+        }
+    }
+    class Triangle
+    {
+        public Point[] pts { get; set; }
+        public Triangle(Point p1, Point p2, Point p3)
+        {
+            pts = new Point[] { p1 , p2, p3};
+        }
+        public double Area()
+        {
+            return 0.5 * ( (pts[0].X * (pts[1].Y - pts[2].Y)) + (pts[1].X * (pts[2].Y - pts[0].Y)) + (pts[2].X * (pts[0].Y - pts[1].Y)) );
         }
     }
     class Segment
