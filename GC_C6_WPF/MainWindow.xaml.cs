@@ -509,14 +509,26 @@ namespace GC_C6_WPF
                 }
             }          
         }
-        public double AreaOfAllTriangles()
+        public double AreaOfAllTriangles1()
         {
             double area = 0;
             foreach(Triangle t in triangles)
             {
                 area += Math.Abs(t.Area());
             }
+            
             return area;
+        }
+        public double AreaOfAllTriangles2()
+        {
+            double area = 0;
+            Point arbitrary = new Point(0, 0);
+            for(int i = 0; i < points.Count; i++)
+            {
+                area += new Triangle(arbitrary, points[i], points[(i + 1) % points.Count]).Area();
+            }
+
+            return Math.Abs(area);
         }
         private void ColorUpClick(object sender, RoutedEventArgs e)
         {
@@ -524,7 +536,8 @@ namespace GC_C6_WPF
         }
         private void AreaClick(object sender, RoutedEventArgs e)
         {
-            Area1Box.Text = AreaOfAllTriangles().ToString();
+            Area1Box.Text = AreaOfAllTriangles1().ToString();
+            Area2Box.Text = AreaOfAllTriangles2().ToString();
         }
     }
     class Triangle

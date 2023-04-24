@@ -9,13 +9,13 @@
         WindowStartupLocation="CenterScreen">
     <Canvas x:Name="BigCanvas">
         <Canvas x:Name="MainCanvas" Height="800" Width="800">
-            
+
         </Canvas>
-        <TextBlock x:Name="Area1Box" Canvas.Left="10" TextWrapping="Wrap" Text="TextBlock" Canvas.Top="42"/>
-        <TextBlock x:Name="Area2Box" Canvas.Left="10" TextWrapping="Wrap" Text="TextBlock" Canvas.Top="63"/>
+        <TextBlock x:Name="Area1Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="42"/>
+        <TextBlock x:Name="Area2Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="63"/>
 
         <Button Content="Otectomie" Canvas.Left="456" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Otectomie"/>
-        <Button Content="Color Up" Canvas.Left="380" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ColorUpClick"/>
+        <Button Content="Color Up" Canvas.Left="385" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ColorUpClick"/>
 
         <Button Content="Polygon Triangulate" Canvas.Left="530" Canvas.Top="10" Background="#FFFBFF00" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PolyTriangulate"/>
         <Button Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
