@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -322,7 +324,7 @@ namespace GC_C6_WPF
                     {
                         prev = n - 1;
                     }
-                    if (IsLeft(points[i + 1], points[i], points[prev]))
+                    if (!IsReflex(points[i], points))
                     {
                         Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
                         helpppp.Fill = Brushes.Red;
@@ -539,7 +541,101 @@ namespace GC_C6_WPF
             Area1Box.Text = AreaOfAllTriangles1().ToString();
             Area2Box.Text = AreaOfAllTriangles2().ToString();
         }
+
+        private void SimpleToMonotonPolygonsConvert(object sender, RoutedEventArgs e)
+        {
+            Point[] sorted = new Point[points.Count];
+            for(int i = 0; i < points.Count; i++)
+            {
+                sorted[i] = points[i];
+                int j = i;
+                while(j > 1 && sorted[j].Y < sorted[j - 1].Y)
+                {
+                    (sorted[j], sorted[j - 1]) = (sorted[j - 1], sorted[j]);
+                    j--;
+                }                
+            }
+            for(int i = 0; i < sorted.Length; i++)
+            {
+                if (IsReflex(sorted[i], points))
+                {
+                    int ptindex = points.IndexOf(sorted[i]);
+                    Point prev = points[(ptindex - 1 + points.Count) % points.Count];
+                    Point next = points[(ptindex + 1) % points.Count];
+                    if(prev.Y < sorted[i].Y && next.Y < sorted[i].Y) // vf de unire
+                    {
+                        Ellipse unire = DrawCircle(10, sorted[i].X, sorted[i].Y);
+                        unire.Fill = Brushes.BlueViolet;
+                       
+                        for(int j = i + 1; j < points.Count; j++)
+                        {
+                            Point nextafternext = sorted[j];
+                            if (IsDiagonalaDinReflex(sorted[i], nextafternext, points))
+                            {
+                                DrawLine(sorted[i], nextafternext, Colors.Red);
+                                break;
+                            }
+                        }
+                        
+
+                    }
+                    else if(prev.Y > sorted[i].Y && next.Y > sorted[i].Y) // vf de separare
+                    {
+                        Ellipse unire = DrawCircle(10, sorted[i].X, sorted[i].Y);
+                        unire.Fill = Brushes.YellowGreen;
+
+                        for (int j = i - 1; j >= 0; j--)
+                        {
+                            Point nextafternext = sorted[j];
+                            if (IsDiagonalaDinReflex(sorted[i], nextafternext, points))
+                            {
+                                DrawLine(sorted[i], nextafternext, Colors.Blue);
+                                break;
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+        bool IsDiagonalaDinReflex(Point reflex, Point q, List<Point> pts)
+        {
+            Point p = reflex;
+            bool ok = true;
+            int i = pts.IndexOf(p);
+            int j = pts.IndexOf(q);
+            Point next = pts[(i + 1) % pts.Count];
+            Point prev = pts[((i - 1) + pts.Count) % pts.Count];
+            Segment toCheck = new Segment(p, q);
+            for (int k = 0; k < pts.Count; k++)
+            {
+                if (k == i || k == j || (k + 1) % pts.Count == j || (k + 1) % pts.Count == i)
+                {
+                    continue;
+                }
+                if (toCheck.Intersects(new Segment(pts[k], pts[(k + 1) % pts.Count])))
+                {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!IsLeft(next, p, q) && !IsLeft(q, p, prev))
+                ok = false;
+            return ok;
+        }
+        bool IsReflex(Point p, List<Point> pts)
+        {
+            int i = pts.IndexOf(p);
+            int next = (i + 1) % pts.Count;
+            int prev = ((i - 1) + pts.Count) % pts.Count;        
+            if (IsLeft(pts[next], points[i], points[prev]))
+            {
+                return false;
+            }
+            return true;
+        }
     }
+    
     class Triangle
     {
         public Point[] pts { get; set; }
