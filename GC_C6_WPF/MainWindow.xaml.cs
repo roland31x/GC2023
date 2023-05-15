@@ -307,44 +307,48 @@ namespace GC_C6_WPF
                         }
                         
                     }
-                    for(int k = 0; k < points.Count; k++)
+                    //for(int k = 0; k < points.Count; k++)
+                    //{
+                    //    if(k == i || k == next || (k + 1) % n == next || (k + 1) % n == i)
+                    //    {
+                    //        continue;
+                    //    }
+                    //    if (toCheck.Intersects(new Segment(points[k], points[(k + 1) % n])))
+                    //    {
+                    //        ok = false;
+                    //        break;
+                    //    }
+                    //}
+                    //int prev = i - 1;
+                    //if(prev < 0)
+                    //{
+                    //    prev = n - 1;
+                    //}
+                    if (!IsDiagonala(points[i], points[j], points))
                     {
-                        if(k == i || k == next || (k + 1) % n == next || (k + 1) % n == i)
-                        {
-                            continue;
-                        }
-                        if (toCheck.Intersects(new Segment(points[k], points[(k + 1) % n])))
-                        {
-                            ok = false;
-                            break;
-                        }
+                        ok = false;
                     }
-                    int prev = i - 1;
-                    if(prev < 0)
-                    {
-                        prev = n - 1;
-                    }
-                    if (!IsReflex(points[i], points))
-                    {
-                        Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
-                        helpppp.Fill = Brushes.Red;
-                        drew.Fill = Brushes.Red;
-                        if (!(IsLeft(points[i + 1], points[i], points[j]) && IsLeft(points[j], points[i], points[prev])))
-                        {
-                            ok = false;
-                        }
+                    //if (!IsReflex(points[i], points))
+                    //{
+                    //    Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
+                    //    helpppp.Fill = Brushes.Red;
+                    //    drew.Fill = Brushes.Red;
+                    //    if (!(IsLeft(points[i + 1], points[i], points[j]) && IsLeft(points[j], points[i], points[prev])))
+                    //    {
+                    //        ok = false;
+                    //    }
                         
-                    }
-                    else
-                    {
-                        Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
-                        helpppp.Fill = Brushes.Blue;
-                        drew.Fill = Brushes.Blue;
-                        if (!IsLeft(points[i + 1], points[i], points[next]) && !IsLeft(points[next], points[i], points[prev]))
-                        {
-                            ok = false;
-                        }
-                    }
+                    //}
+                    //else
+                    //{
+                    //    Ellipse helpppp = DrawCircle(10, points[i].X, points[i].Y);
+                    //    helpppp.Fill = Brushes.Blue;
+                    //    drew.Fill = Brushes.Blue;
+                    //    if (!IsLeft(points[i + 1], points[i], points[next]) && !IsLeft(points[next], points[i], points[prev]))
+                    //    {
+                    //        ok = false;
+                    //    }
+                    //}
                     await Task.Delay(50);
                     if (ok)
                     {
@@ -623,6 +627,31 @@ namespace GC_C6_WPF
                 ok = false;
             return ok;
         }
+        bool IsDiagonalaDinConvex(Point convex, Point q, List<Point> pts)
+        {
+            Point p = convex;
+            bool ok = true;
+            int i = pts.IndexOf(p);
+            int j = pts.IndexOf(q);
+            Point next = pts[(i + 1) % pts.Count];
+            Point prev = pts[((i - 1) + pts.Count) % pts.Count];
+            Segment toCheck = new Segment(p, q);
+            for (int k = 0; k < pts.Count; k++)
+            {
+                if (k == i || k == j || (k + 1) % pts.Count == j || (k + 1) % pts.Count == i)
+                {
+                    continue;
+                }
+                if (toCheck.Intersects(new Segment(pts[k], pts[(k + 1) % pts.Count])))
+                {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!(IsLeft(next, p, q) && IsLeft(q, p, prev)))
+                ok = false;
+            return ok;
+        }
         bool IsReflex(Point p, List<Point> pts)
         {
             int i = pts.IndexOf(p);
@@ -634,8 +663,150 @@ namespace GC_C6_WPF
             }
             return true;
         }
+        private async void MonotonTriangulate_Click(object sender, RoutedEventArgs e)
+        {
+            Point[] sorted = new Point[points.Count];
+            for (int i = 0; i < points.Count; i++)
+            {
+                sorted[i] = points[i];
+                int j = i;
+                while (j >= 1 && sorted[j].Y < sorted[j - 1].Y)
+                {
+                    (sorted[j], sorted[j - 1]) = (sorted[j - 1], sorted[j]);
+                    j--;
+                }
+            }
+            for(int i = 0; i < sorted.Length; i++)
+            {
+                Label order = new Label() { Content = i.ToString() };
+                Canvas.SetTop(order, sorted[i].Y);
+                Canvas.SetLeft(order, sorted[i].X);
+                MainCanvas.Children.Add(order);
+            }
+            List<Point> ALine = new List<Point>();
+            List<Point> BLine = new List<Point>();
+            Point MinPoint = sorted.Last();
+            Point MaxPoint = sorted.First();
+            int Adx = points.IndexOf(MaxPoint);
+            int Bdx = points.IndexOf(MinPoint);
+            while(Adx != points.IndexOf(MinPoint))
+            {
+                ALine.Add(points[Adx]);
+                DrawLine(points[Adx], points[(Adx+1) % points.Count], Colors.Red);
+                Adx++;
+                Adx = Adx % points.Count;
+            }
+            ALine.Add(points[Adx]);
+            while (Bdx != points.IndexOf(MaxPoint))
+            {
+                BLine.Add(points[Bdx]);
+                DrawLine(points[Bdx], points[(Bdx + 1) % points.Count], Colors.Blue);
+                Bdx++;
+                Bdx = Bdx % points.Count;
+            }
+            BLine.Add(points[Bdx]);
+
+            Stack<Point> stack = new Stack<Point>();
+            stack.Push(sorted[0]);
+            stack.Push(sorted[1]);
+
+            for(int j = 2; j < points.Count - 1; j++)
+            {
+                
+                if ( (ALine.Contains(stack.Peek()) && !ALine.Contains(sorted[j])) || (BLine.Contains(stack.Peek()) && !BLine.Contains(sorted[j])) )
+                {
+                    this.Background = Brushes.BlanchedAlmond;
+                    while (stack.Count > 1)
+                    {
+                        Point TopOfStack = stack.Pop();
+                        DrawLine(sorted[j], TopOfStack, Colors.Black);
+                        //await Task.Delay(1000);
+                    }
+                    if(stack.Count > 0)
+                    {
+                        stack.Pop();
+                    }                 
+                    stack.Push(sorted[j - 1]);
+                    stack.Push(sorted[j]);
+                }
+                else
+                {
+                    this.Background = Brushes.White;
+                    List<Point> temp = new List<Point>();
+                    Point LastDeleted = stack.Pop();
+                    for(int i = 0; i < stack.Count; i++)
+                    {
+                        temp.Add(stack.Pop());
+                    }
+                    for(int i = temp.Count - 1; i >= 0; i--)
+                    {
+                        Point tocheck = temp[i];
+                        bool ok = true;
+                        //for (int k = 0; k < points.Count; k++)
+                        //{
+                        //    if ((tocheck == points[k] && sorted[j] == points[(k + 1) % points.Count]) || (tocheck == points[(k + 1) % points.Count] && sorted[j] == points[k]))
+                        //        ok = false;
+                        //}
+                        if (IsDiagonala(sorted[j], tocheck, points) && ok)
+                        {
+                            DrawLine(sorted[j], tocheck, Colors.Gray);
+                            LastDeleted = tocheck;
+                        }
+                        else
+                        {
+                            //Line drew = DrawLine(sorted[j], tocheck, Colors.Red);
+                            //await Task.Delay(1000);
+                            //MainCanvas.Children.Remove(drew);
+                            stack.Push(tocheck);
+                        }
+                    }
+
+                    stack.Push(LastDeleted);
+
+                    stack.Push(sorted[j]);
+                }
+                await Task.Delay(1000);
+            }
+            stack.Pop();
+            for(int i = 0; i < stack.Count - 1; i++)
+            {
+                DrawLine(sorted.Last(), stack.Pop(), Colors.DarkBlue);
+            }
+
+        }
+        bool IsDiagonala(Point from,Point to, List<Point> pts)
+        {
+            Segment tocheck = new Segment(from, to);
+            for (int k = 0; k < points.Count; k++)
+            {
+                if (k == points.IndexOf(from) || k == points.IndexOf(to) || (k + 1) % points.Count == points.IndexOf(to) || (k + 1) % points.Count == points.IndexOf(from))
+                {
+                    continue;
+                }
+                if (tocheck.Intersects(new Segment(points[k], points[(k + 1) % points.Count])))
+                {
+                    return false;
+                }
+            }
+            if (IsReflex(from, pts))
+            {
+                if(IsDiagonalaDinReflex(from, to, pts))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if(IsDiagonalaDinConvex(from, to , pts))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
-    
+
     class Triangle
     {
         public Point[] pts { get; set; }
