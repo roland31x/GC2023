@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -546,14 +547,22 @@ namespace GC_C6_WPF
             Area2Box.Text = AreaOfAllTriangles2().ToString();
         }
 
-        private void SimpleToMonotonPolygonsConvert(object sender, RoutedEventArgs e)
+        private async void SimpleToMonotonPolygonsConvert(object sender, RoutedEventArgs e)
         {
+            List<List<Point>> polygons = new List<List<Point>>();
+            List<Point> initial = new List<Point>();
+            List<Segment> diags = new List<Segment>();
+            polygons.Add(initial);
+            foreach(Point p in points)
+            {
+                initial.Add(p);
+            }
             Point[] sorted = new Point[points.Count];
             for(int i = 0; i < points.Count; i++)
             {
                 sorted[i] = points[i];
                 int j = i;
-                while(j > 1 && sorted[j].Y < sorted[j - 1].Y)
+                while(j >= 1 && sorted[j].Y < sorted[j - 1].Y)
                 {
                     (sorted[j], sorted[j - 1]) = (sorted[j - 1], sorted[j]);
                     j--;
@@ -576,7 +585,41 @@ namespace GC_C6_WPF
                             Point nextafternext = sorted[j];
                             if (IsDiagonalaDinReflex(sorted[i], nextafternext, points))
                             {
-                                DrawLine(sorted[i], nextafternext, Colors.Red);
+                                bool ok = true;
+                                bool verybad = false;
+                                Segment toadd = new Segment(sorted[i], nextafternext);
+                                foreach(Segment s in diags)
+                                {
+                                    if (s.p == toadd.p && s.q != toadd.q)
+                                        continue;
+                                    if (s.q == toadd.p && s.p != toadd.q)
+                                        continue;
+                                    if (s.q == toadd.p && s.p == toadd.q)
+                                    {
+                                        verybad = true;
+                                        break;
+                                    }                                       
+                                    if(s.q == toadd.q && s.p == toadd.p)
+                                    {
+                                        verybad = true;
+                                        break;
+                                    }
+                                    if (s.Intersects(toadd))
+                                    {
+                                        ok = false; 
+                                        break;
+                                    }                                      
+                                }
+                                if (verybad)
+                                {
+                                    break;
+                                }
+                                if (!ok)
+                                {
+                                    continue;
+                                }
+                                DrawLine(sorted[i], nextafternext, Colors.Black);
+                                PartitionPoligon(polygons, sorted[i], nextafternext);
                                 break;
                             }
                         }
@@ -593,7 +636,8 @@ namespace GC_C6_WPF
                             Point nextafternext = sorted[j];
                             if (IsDiagonalaDinReflex(sorted[i], nextafternext, points))
                             {
-                                DrawLine(sorted[i], nextafternext, Colors.Blue);
+                                DrawLine(sorted[i], nextafternext, Colors.Black);
+                                PartitionPoligon(polygons, sorted[i], nextafternext);
                                 break;
                             }
 
@@ -601,7 +645,63 @@ namespace GC_C6_WPF
                     }
                 }
             }
+            await Task.Delay(5000);
+            foreach(List<Point> poligon in polygons)
+            {
+                MonotonTriangulate(poligon);
+                await Task.Delay(2000);
+
+                //List<Line> drew = new List<Line>();
+                for (int i = 0; i < poligon.Count; i++)
+                {
+                    DrawLine(poligon[i], poligon[(i + 1) % poligon.Count], Colors.Black);
+                    await Task.Delay(250);
+
+                }
+                await Task.Delay(1000);
+                //foreach (Line l in drew)
+                //{
+                //    MainCanvas.Children.Remove(l);
+                //}
+            }
         }
+
+        private void PartitionPoligon(List<List<Point>> polygons, Point point, Point nextafternext)
+        {
+            for(int i = 0; i < polygons.Count; i++)
+            {
+                if (polygons[i].Contains(point) && polygons[i].Contains(nextafternext))
+                {
+                    List<Point> toDivide = polygons[i];
+
+                    List<Point> newpoly = new List<Point>();
+                    List<Point> toremove = new List<Point>();
+                    int P1ind = toDivide.IndexOf(point);
+                    int P2ind = toDivide.IndexOf(nextafternext);
+
+                    int Idx = Math.Min(P1ind, P2ind);
+                    while (Idx != Math.Max(P1ind, P2ind))
+                    {
+                        newpoly.Add(toDivide[Idx]);
+                        if (Idx != P1ind && Idx != P2ind)
+                        {
+                            toremove.Add((toDivide[Idx]));
+                        }
+                        Idx++;
+                        Idx %= toDivide.Count;
+                    }
+                    newpoly.Add(toDivide[Math.Max(P1ind,P2ind)]);
+                    foreach (Point p in toremove)
+                    {
+                        toDivide.Remove(p);
+                    }
+                    polygons.Add(newpoly);
+
+                    break;
+                }
+            }
+        }
+
         bool IsDiagonalaDinReflex(Point reflex, Point q, List<Point> pts)
         {
             Point p = reflex;
@@ -663,7 +763,7 @@ namespace GC_C6_WPF
             }
             return true;
         }
-        private async void MonotonTriangulate_Click(object sender, RoutedEventArgs e)
+        async void MonotonTriangulate(List<Point> points)
         {
             Point[] sorted = new Point[points.Count];
             for (int i = 0; i < points.Count; i++)
@@ -676,23 +776,23 @@ namespace GC_C6_WPF
                     j--;
                 }
             }
-            for(int i = 0; i < sorted.Length; i++)
-            {
-                Label order = new Label() { Content = i.ToString() };
-                Canvas.SetTop(order, sorted[i].Y);
-                Canvas.SetLeft(order, sorted[i].X);
-                MainCanvas.Children.Add(order);
-            }
+            //for (int i = 0; i < sorted.Length; i++)
+            //{
+            //    Label order = new Label() { Content = i.ToString() };
+            //    Canvas.SetTop(order, sorted[i].Y);
+            //    Canvas.SetLeft(order, sorted[i].X);
+            //    MainCanvas.Children.Add(order);
+            //}
             List<Point> ALine = new List<Point>();
             List<Point> BLine = new List<Point>();
             Point MinPoint = sorted.Last();
             Point MaxPoint = sorted.First();
             int Adx = points.IndexOf(MaxPoint);
             int Bdx = points.IndexOf(MinPoint);
-            while(Adx != points.IndexOf(MinPoint))
+            while (Adx != points.IndexOf(MinPoint))
             {
                 ALine.Add(points[Adx]);
-                DrawLine(points[Adx], points[(Adx+1) % points.Count], Colors.Red);
+                DrawLine(points[Adx], points[(Adx + 1) % points.Count], Colors.Red);
                 Adx++;
                 Adx = Adx % points.Count;
             }
@@ -710,35 +810,35 @@ namespace GC_C6_WPF
             stack.Push(sorted[0]);
             stack.Push(sorted[1]);
 
-            for(int j = 2; j < points.Count - 1; j++)
+            for (int j = 2; j < points.Count - 1; j++)
             {
-                
-                if ( (ALine.Contains(stack.Peek()) && !ALine.Contains(sorted[j])) || (BLine.Contains(stack.Peek()) && !BLine.Contains(sorted[j])) )
+
+                if ((ALine.Contains(stack.Peek()) && !ALine.Contains(sorted[j])) || (BLine.Contains(stack.Peek()) && !BLine.Contains(sorted[j])))
                 {
-                    this.Background = Brushes.BlanchedAlmond;
+                    //this.Background = Brushes.BlanchedAlmond;
                     while (stack.Count > 1)
                     {
                         Point TopOfStack = stack.Pop();
                         DrawLine(sorted[j], TopOfStack, Colors.Black);
                         //await Task.Delay(1000);
                     }
-                    if(stack.Count > 0)
+                    if (stack.Count > 0)
                     {
                         stack.Pop();
-                    }                 
+                    }
                     stack.Push(sorted[j - 1]);
                     stack.Push(sorted[j]);
                 }
                 else
                 {
-                    this.Background = Brushes.White;
+                    //this.Background = Brushes.White;
                     List<Point> temp = new List<Point>();
                     Point LastDeleted = stack.Pop();
-                    for(int i = 0; i < stack.Count; i++)
+                    for (int i = 0; i < stack.Count; i++)
                     {
                         temp.Add(stack.Pop());
                     }
-                    for(int i = temp.Count - 1; i >= 0; i--)
+                    for (int i = temp.Count - 1; i >= 0; i--)
                     {
                         Point tocheck = temp[i];
                         bool ok = true;
@@ -765,13 +865,17 @@ namespace GC_C6_WPF
 
                     stack.Push(sorted[j]);
                 }
-                await Task.Delay(1000);
+                await Task.Delay(100);
             }
             stack.Pop();
-            for(int i = 0; i < stack.Count - 1; i++)
+            for (int i = 0; i < stack.Count - 1; i++)
             {
                 DrawLine(sorted.Last(), stack.Pop(), Colors.DarkBlue);
             }
+        }
+        private void MonotonTriangulate_Click(object sender, RoutedEventArgs e)
+        {
+            MonotonTriangulate(points);
 
         }
         bool IsDiagonala(Point from,Point to, List<Point> pts)
@@ -812,7 +916,7 @@ namespace GC_C6_WPF
         public Point[] pts { get; set; }
         public Triangle(Point p1, Point p2, Point p3)
         {
-            pts = new Point[] { p1 , p2, p3};
+            pts = new Point[] { p1 , p2 , p3 };
         }
         public double Area()
         {

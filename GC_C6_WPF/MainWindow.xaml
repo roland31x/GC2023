@@ -8,13 +8,9 @@
         Title="MainWindow" Height="800" Width="1024"
         WindowStartupLocation="CenterScreen">
     <Canvas x:Name="BigCanvas">
-        <Canvas x:Name="MainCanvas" Height="884" Width="1024">
-
-
-
-        </Canvas>
+        <Canvas x:Name="MainCanvas" Height="884" Width="1024"/>
         <Button Content="Monoton Triangulate" Canvas.Left="308" Canvas.Top="10" HorizontalAlignment="Left" Click="MonotonTriangulate_Click" VerticalAlignment="Center"/>
-        <Button Content="Simple -&gt; Monoton Polygons" Canvas.Left="754" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SimpleToMonotonPolygonsConvert"/>
+        <Button Content="Simple Polygon Triangulate" Canvas.Left="754" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SimpleToMonotonPolygonsConvert"/>
         <TextBlock x:Name="Area1Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="42"/>
         <TextBlock x:Name="Area2Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="63"/>
 
