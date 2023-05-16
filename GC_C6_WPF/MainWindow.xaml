@@ -8,20 +8,39 @@
         Title="MainWindow" Height="800" Width="1024"
         WindowStartupLocation="CenterScreen">
     <Canvas x:Name="BigCanvas">
-        <Canvas x:Name="MainCanvas" Height="884" Width="1024"/>
-        <Button Content="Monoton Triangulate" Canvas.Left="308" Canvas.Top="10" HorizontalAlignment="Left" Click="MonotonTriangulate_Click" VerticalAlignment="Center"/>
-        <Button Content="Simple Polygon Triangulate" Canvas.Left="754" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SimpleToMonotonPolygonsConvert"/>
+        <Canvas x:Name="MainCanvas" Height="884" Width="1024">
+            <Label Content="DRAW ALL POLYGONS COUNTER-CLOCKWISE!!!!" Canvas.Left="346" Canvas.Top="53" FontStyle="Italic" FontWeight="Bold" FontFamily="Verdana" Opacity="0.15"/>
+        </Canvas>
+        <Button Height="20" Width="152" Canvas.Left="754" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Content="Simple -&gt; Convex Polygons" Click="SimpleToConvexPolygons"/>
+        <Button Content="Monoton Triangulate" Canvas.Left="291" Canvas.Top="30" HorizontalAlignment="Left" Click="MonotonTriangulate_Click" VerticalAlignment="Center" Background="#FFFFE684"/>
+        <Button Content="Simple Polygon Triangulate" Canvas.Left="275" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SimpleToMonotonPolygonsConvert" Background="#FFFFC200"/>
         <TextBlock x:Name="Area1Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="42"/>
         <TextBlock x:Name="Area2Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="63"/>
 
-        <Button Content="Otectomie" Canvas.Left="428" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Otectomie" Width="88"/>
-        <Button Content="Color Up" Canvas.Left="428" Canvas.Top="30" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ColorUpClick" Width="55"/>
+        <Button Content="Otectomie" Canvas.Left="428" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Otectomie" Width="88" Background="#FF00DBFF"/>
+        <Button Content="Color Up" Canvas.Left="428" Canvas.Top="30" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ColorUpClick" Width="55" Foreground="#FFC4B8FF">
+            <Button.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                            <SkewTransform CenterX="0.5" CenterY="0.5"/>
+                            <RotateTransform Angle="-90" CenterX="0.5" CenterY="0.5"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Color="#FF00FF30"/>
+                    <GradientStop Color="#FF3400FF" Offset="1"/>
+                    <GradientStop Color="Red" Offset="0.523"/>
+                </LinearGradientBrush>
+            </Button.Background>
+        </Button>
 
         <Button Content="Polygon Triangulate" Canvas.Left="521" Canvas.Top="10" Background="#FFFBFF00" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PolyTriangulate"/>
         <Button Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
         <Line Stroke="Aquamarine" Width="380" Height="240" X1="2"></Line>
         <Button Content="Convex Triangulate" Canvas.Left="635" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="TR_Click" Background="#FFF597FF" Width="114"/>
         <Button Content="Triangulate Random Set" Canvas.Left="76" Canvas.Top="10" Click="TriangulateRandomPts" HorizontalAlignment="Left" VerticalAlignment="Center" Width="132" BorderBrush="#FFCEFF31" Background="#FF96FF9E"/>
-        <Button Content="Area" Canvas.Left="483" Canvas.Top="30" Click="AreaClick" HorizontalAlignment="Left" VerticalAlignment="Center" Width="33"/>
+        <Button Content="Area" Canvas.Left="483" Canvas.Top="30" Click="AreaClick" HorizontalAlignment="Left" VerticalAlignment="Center" Width="33" Background="#FFEDFF35"/>
     </Canvas>
 </Window>

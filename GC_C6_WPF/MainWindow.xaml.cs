@@ -909,7 +909,193 @@ namespace GC_C6_WPF
             return false;
         }
 
+        private async void SimpleToConvexPolygons(object sender, RoutedEventArgs e)
+        {
+            List<List<Point>> Polygons = new List<List<Point>>();
+            List<Point> initial = new List<Point>();
+            //List<Point> Reflex = new List<Point>();
+            List<Line> DiagsDrew = new List<Line>();
+            //List<Segment> Diags = new List<Segment>();
+            foreach (Point p in points)
+            {
+                //if (IsReflex(p, points))
+                //{
+                //    Reflex.Add(p);
+                //}
+                initial.Add(p);
+            }
+            Polygons.Add(initial);
+            //foreach(Point reflex in Reflex)
+            //{
+            //    for(int i = 0; i < Polygons.Count; i++)
+            //    {
+
+            //    }
+            //}
+            int n = points.Count;
+            List<Segment> segs = new List<Segment>();
+            for (int i = 0; i < n - 1; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    if (j == i || j == i - 1 || j == i + 1)
+                    {
+                        continue;
+                    }
+                    int next = j % n;
+                    if (i == 0 && j == n - 1)
+                    {
+                        break;
+                    }
+                    bool ok = true;
+                    Segment toCheck = new Segment(points[i], points[next]);
+                    Line drew = DrawLine(toCheck.p, toCheck.q, Colors.Black);
+                    DiagsDrew.Add(drew);
+                    for (int k = 0; k < segs.Count; k++)
+                    {
+                        if ((toCheck.p == segs[k].p && toCheck.q == segs[k].q) || (toCheck.p == segs[k].q && toCheck.q == segs[k].p))
+                        {
+                            ok = false;
+                            break;
+
+                        }
+                        if (toCheck.p == segs[k].p || toCheck.p == segs[k].q || toCheck.q == segs[k].p || toCheck.q == segs[k].q)
+                        {
+                            continue;
+                        }
+                        
+                        if (toCheck.Intersects(segs[k]))
+                        {
+                            ok = false;
+                            break;
+                        }
+
+                    }
+                    if (!IsDiagonala(points[i], points[j], points))
+                    {
+                        ok = false;
+                    }
+                    if (ok)
+                    {
+                        segs.Add(toCheck);
+                        PartitionPoligon(Polygons, toCheck.p, toCheck.q);
+                    }
+                    else
+                    {
+                        MainCanvas.Children.Remove(drew);
+                        DiagsDrew.Remove(drew);
+                    }
+
+                }
+            }
+            await Task.Delay(100);
+            for(int i = 0; i < segs.Count; i++)
+            {
+                Line drew = DrawLine(segs[i].q, segs[i].p, Colors.Blue);
+                if (!IsEssential(segs[i], Polygons))
+                {
+                    MainCanvas.Children.Remove(DiagsDrew[segs.IndexOf(segs[i])]);
+                    DiagsDrew.RemoveAt(segs.IndexOf(segs[i]));
+                    segs.Remove(segs[i]);                   
+                    i--;
+                }
+                await Task.Delay(100);
+                MainCanvas.Children.Remove(drew);
+            }
+        }
+        bool IsEssential(Segment diagonal, List<List<Point>> Polygons)
+        {
+            int P1IDX = -1;
+            int P2IDX = -1;
+            bool ok = false;
+            //DrawLine(diagonal.p, diagonal.q, Colors.Blue);
+            for(int i = 0; i < Polygons.Count; i++)
+            {
+                if (Polygons[i].Contains(diagonal.q) && Polygons[i].Contains(diagonal.p))
+                {
+                    if(P1IDX == -1)
+                        P1IDX = i;
+                    else
+                        P2IDX = i;
+                }
+            }
+            if(P2IDX == -1 || P1IDX == -1)
+            {
+                return true;
+            }
+
+            List<Point> newPoly = new List<Point>();
+          
+            foreach(Point p in Polygons[P1IDX])
+            {
+                if (p == diagonal.p || p == diagonal.q)
+                    continue;
+                newPoly.Add(p);
+            }
+            foreach (Point p in Polygons[P2IDX])
+            {
+                if (p == diagonal.p || p == diagonal.q)
+                    continue;
+                newPoly.Add(p);
+            }
+            newPoly.Add(diagonal.p);
+            newPoly.Add(diagonal.q);
+            for(int i = 0; i < newPoly.Count; i++)
+            {
+                for(int j = i + 1; j < newPoly.Count; j++)
+                {
+                    if (points.IndexOf(newPoly[i]) > points.IndexOf(newPoly[j]))
+                    {
+                        (newPoly[i], newPoly[j]) = (newPoly[j], newPoly[i]);
+                    }
+                }
+            }
+            //for (int i = 0; i < Polygons[P1IDX].Count; i++)
+            //{
+            //    newPoly.Add(Polygons[P1IDX][i]);
+            //    //    DrawLine(Polygons[P1IDX][i], Polygons[P1IDX][(i+1) % Polygons[P1IDX].Count], Colors.Red);
+            //    //    await Task.Delay(1000);
+            //}
+            //for (int i = 0; i < Polygons[P2IDX].Count; i++)
+            //{
+            //    if (newPoly.Contains(Polygons[P2IDX][i]))
+            //        continue;
+            //    newPoly.Add(Polygons[P2IDX][i]);
+            //    //    DrawLine(Polygons[P2IDX][i], Polygons[P2IDX][(i + 1) % Polygons[P2IDX].Count], Colors.Red);
+            //    //    await Task.Delay(1000);
+            //}
+            //List<Line> drawnl = new List<Line>();
+            for(int i = 0; i < newPoly.Count; i++)
+            {
+                //drawnl.Add(DrawLine(newPoly[i], newPoly[(i + 1) % newPoly.Count], Colors.Red));
+                if (IsLeft(newPoly[i], newPoly[(i + 1) % newPoly.Count], newPoly[(i - 1 + newPoly.Count) % newPoly.Count]))
+                {
+                    //Ellipse el = DrawCircle(10, newPoly[i].X, newPoly[i].Y);
+                    //el.Fill = Brushes.Red;
+                    ok = true;
+                    break;
+                    //break;
+                }
+                //await Task.Delay(1000);
+            }
+            //await Task.Delay(1000);
+            //foreach(Line l in drawnl)
+            //{
+            //    MainCanvas.Children.Remove(l);
+            //}
+            if (!ok)
+            {
+                List<Point> p1 = Polygons[P1IDX];
+                List<Point> p2 = Polygons[P2IDX];
+                Polygons.Remove(p1);
+                Polygons.Remove(p2);
+                Polygons.Add(newPoly);
+            }
+
+            return ok;
+        }
     }
+    
 
     class Triangle
     {
