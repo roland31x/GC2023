@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,14 +31,28 @@ namespace GC_C6_WPF
 
         Line? last;
         Ellipse? set;
-        bool done = false;
+        bool _d = false;
+        bool done { get { return _d; } set { _d = value; } }
         public MainWindow()
         {
             InitializeComponent();
             MouseDown += MainWindow_MouseDown;
             MouseMove += MainWindow_MouseMove;
         }
-
+        void LockAllButtons()
+        {
+            foreach(Button b in BigCanvas.Children.OfType<Button>().Where(x => x != ResetButton))
+            {
+                b.IsEnabled = false;
+            }
+        }
+        void UnlockAllButtons()
+        {
+            foreach(Button b in BigCanvas.Children.OfType<Button>().Where(x => x != ResetButton))
+            {
+                b.IsEnabled = true;
+            }
+        }
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
             if(!done && points.Count > 0)
@@ -264,6 +279,7 @@ namespace GC_C6_WPF
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
             points = new List<Point>();
+            triangles = new List<Triangle>();
             done = false;
             MainCanvas.Children.Clear();
         }
@@ -834,20 +850,14 @@ namespace GC_C6_WPF
                     //this.Background = Brushes.White;
                     List<Point> temp = new List<Point>();
                     Point LastDeleted = stack.Pop();
-                    for (int i = 0; i < stack.Count; i++)
+                    while(stack.Any())
                     {
                         temp.Add(stack.Pop());
                     }
                     for (int i = temp.Count - 1; i >= 0; i--)
                     {
                         Point tocheck = temp[i];
-                        bool ok = true;
-                        //for (int k = 0; k < points.Count; k++)
-                        //{
-                        //    if ((tocheck == points[k] && sorted[j] == points[(k + 1) % points.Count]) || (tocheck == points[(k + 1) % points.Count] && sorted[j] == points[k]))
-                        //        ok = false;
-                        //}
-                        if (IsDiagonala(sorted[j], tocheck, points) && ok)
+                        if (IsDiagonala(sorted[j], tocheck, points))
                         {
                             DrawLine(sorted[j], tocheck, Colors.Gray);
                             LastDeleted = tocheck;
@@ -1094,19 +1104,288 @@ namespace GC_C6_WPF
 
             return ok;
         }
+
+        private void Delaunay_Click(object sender, RoutedEventArgs e)
+        {
+            done = true;
+            DelaunayTriangulate();
+            foreach (Triangle tr in triangles)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    DrawLine(tr.pts[i], tr.pts[(i + 1) % 3], Colors.Gray);
+                }
+            }
+        }
+        void DelaunayTriangulate()
+        {
+            Random rng = new Random();
+            for (int i = 0; i < 3; i++)
+            {
+                Point toadd = new Point(rng.Next(100, (int)MainCanvas.Width - 100), rng.Next(100, (int)MainCanvas.Height - 100));
+                DrawCircle(10, toadd, Colors.Black);
+                points.Add(toadd);
+            }
+            for (int i = 0; i < points.Count; i++)
+            {
+                for (int j = i + 1; j < points.Count; j++)
+                {
+                    for (int k = j + 1; k < points.Count; k++)
+                    {
+                        Triangle trngl = new Triangle(points[i], points[j], points[k]);
+                        bool ok = true;
+                        for (int l = 0; l < points.Count; l++)
+                        {
+                            if (l == i || l == j || l == k)
+                            {
+                                continue;
+                            }
+                            if (Segment.GetDist(points[l], trngl.CCC) <= trngl.CircumCircleRadius)
+                            {
+                                ok = false;
+                                break;
+                            }
+                            //DrawLine(points[l], trngl.CCC, Colors.Violet);
+                        }
+                        if (ok)
+                        {
+                            triangles.Add(trngl);
+                        }
+                    }
+                }
+            }
+        }
+        private void Voronoi_Click(object sender, RoutedEventArgs e)
+        {
+            done = true;
+
+            DelaunayTriangulate();
+            foreach (Triangle tr in triangles)
+            {
+                DrawCircle(10, tr.CCC, Colors.Red);
+            }
+            for (int i = 0; i < triangles.Count; i++)
+            {
+                for (int j = i + 1; j < triangles.Count; j++)
+                {
+                    bool ok = false;
+                    if (triangles[i].pts.Contains(triangles[j].pts[0]) && triangles[i].pts.Contains(triangles[j].pts[1]))
+                    {
+                        ok = true;
+                    }
+                    else if (triangles[i].pts.Contains(triangles[j].pts[1]) && triangles[i].pts.Contains(triangles[j].pts[2]))
+                    {
+                        ok = true;
+                    }
+                    else if (triangles[i].pts.Contains(triangles[j].pts[0]) && triangles[i].pts.Contains(triangles[j].pts[2]))
+                    {
+                        ok = true;
+                    }
+                    if (ok)
+                    {
+                        triangles[i].VoronoiLines++;
+                        triangles[j].VoronoiLines++;
+                        DrawLine(triangles[j].CCC, triangles[i].CCC, Colors.Blue);
+                    }
+                }
+            }
+            double xmin = 2000, ymin = 2000, xmax = -2000, ymax = -2000;
+            for (int i = 0; i < points.Count; i++)
+            {
+                if (points[i].X < xmin)
+                {
+                    xmin = points[i].X;
+                }
+                if (points[i].Y < ymin)
+                {
+                    ymin = points[i].Y;
+                }
+                if (points[i].X > xmax)
+                {
+                    xmax = points[i].X;
+                }
+                if (points[i].Y > ymax)
+                {
+                    ymax = points[i].Y;
+                }
+            }
+
+            Point mapcenter = new Point((xmin + xmax) / 2, (ymin + ymax) / 2);
+            //DrawCircle(15, mapcenter, Colors.Gold);
+
+            List<Segment> CHS = new List<Segment>();
+            List<Point> S = points;
+            for (int i = 0; i < S.Count; i++)
+            {
+                for (int j = 0; j < S.Count; j++)
+                {
+                    if (S[i] == S[j])
+                    {
+                        continue;
+                    }
+                    bool ok = true;
+                    for (int k = 0; k < S.Count; k++)
+                    {
+                        if (S[k] == S[j] || S[k] == S[i])
+                        {
+                            continue;
+                        }
+                        if (IsLeft(S[k], S[i], S[j]))
+                        {
+                            ok = false;
+                        }
+                    }
+                    if (ok)
+                    {
+                        CHS.Add(new Segment(S[i], S[j]));
+                    }
+                }
+            }
+            int[] chsq = new int[CHS.Count];
+
+            while (triangles.Where(x => x.VoronoiLines <= 2).Any())
+            {
+                foreach (Triangle tr in triangles.Where(x => x.VoronoiLines <= 2))
+                {
+
+                    double Adist = Segment.GetDist(tr.pts[0], mapcenter);
+                    double Bdist = Segment.GetDist(tr.pts[1], mapcenter);
+                    double Cidst = Segment.GetDist(tr.pts[2], mapcenter);
+
+                    Point mid;
+
+                    for (int i = 0; i < CHS.Count; i++)
+                    {
+                        if (tr.pts.Contains(CHS[i].p) && tr.pts.Contains(CHS[i].q) && chsq[i] == 0)
+                        {
+                            //for (int j = 0; j < added.Count; j++)
+                            //{
+                            //    added[j].Intersects(CHS[i]);
+                            //    continue;
+                            //}
+                            Point p1 = CHS[i].p;
+                            Point p2 = CHS[i].q;
+                            mid = new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
+                            chsq[i]++;
+                            break;
+                        }
+                    }
+
+                    double lineslope = Segment.GetSlope(mid, tr.CCC);
+                    double MidDist = Segment.GetDist(mapcenter, mid);
+
+
+                    // y - y1 = m * ( x - x1 )
+                    double cX = mid.X + 5;
+
+
+                    double cY = tr.CCC.Y - lineslope * (tr.CCC.X - cX);
+
+
+                    Point calcpoint = new Point(cX, cY);
+
+                    if (Segment.GetDist(mapcenter, calcpoint) > MidDist)
+                    {
+                        cX = 2000;
+                    }
+                    else
+                    {
+                        cX = 0;
+                    }
+                    cY = tr.CCC.Y - lineslope * (tr.CCC.X - cX);
+                    calcpoint = new Point(cX, cY);
+
+
+                    DrawLine(tr.CCC, calcpoint, Colors.Blue);
+                    tr.VoronoiLines++;
+
+                }
+            }
+        }
     }
-    
+
 
     class Triangle
     {
         public Point[] pts { get; set; }
+        public Point CCC { get; set; }
+        public Point[] medpts { get; set; }
+        public double CircumCircleRadius { get; set; }
+        public int VoronoiLines = 0;
         public Triangle(Point p1, Point p2, Point p3)
         {
             pts = new Point[] { p1 , p2 , p3 };
+            CCC = CircumCircleCenter();
+            medpts = MedPointCalc();
+            CircumCircleRadius = CRCalc();
         }
         public double Area()
         {
             return 0.5 * ( (pts[0].X * (pts[1].Y - pts[2].Y)) + (pts[1].X * (pts[2].Y - pts[0].Y)) + (pts[2].X * (pts[0].Y - pts[1].Y)) );
+        }
+        double CRCalc()
+        {
+            return GetDist(CCC, pts[0]);
+        }
+        Point[] MedPointCalc()
+        {
+            
+            Point A = pts[0];
+            Point B = pts[1];
+            Point C = pts[2];
+
+            Point P = new Point((B.X + C.X) / 2, (B.Y + C.Y) / 2);
+            Point Q = new Point((A.X + C.X) / 2, (A.Y + C.Y) / 2);
+            Point R = new Point((A.X + B.X) / 2, (A.Y + B.Y) / 2);          
+
+            Point[] tor = new Point[] { P, Q, R };
+
+            return tor;
+
+        }
+        Point CircumCircleCenter()
+        {
+            Point A = new Point(pts[0].X, pts[0].Y);
+            Point B = new Point(pts[1].X, pts[1].Y);
+            Point C = new Point(pts[2].X, pts[2].Y);
+
+            double mAB = GetSlope(A, B);
+            double mBC = GetSlope(B, C);
+            if(mAB == 0)
+            {
+                Point aux = A;
+                A = C;
+                B = A;
+                C = aux;
+            }
+            if(mBC == 0)
+            {
+                Point aux = A;
+                A = B;
+                B = aux;
+            }
+
+            Point P = new Point((B.X + C.X) / 2, (B.Y + C.Y) / 2);
+            Point Q = new Point((A.X + B.X) / 2, (A.Y + B.Y) / 2);
+
+
+            double xR = (P.Y - Q.Y + P.X / GetSlope(B, C) - Q.X / GetSlope(A, B)) / ((1 / GetSlope(B, C)) - (1 / GetSlope(A, B)));
+            double yR = (Q.Y - (1 / GetSlope(A, B)) * xR) + Q.X / GetSlope(A, B);
+
+            Point CC = new Point(xR, yR);
+            return CC;
+        }
+        double GetSlope(Point p, Point q)
+        {
+            if (q.X - p.X == 0)
+            {
+                return double.MaxValue;
+            }
+            else return (q.Y - p.Y) / (q.X - p.X);
+        }
+        double GetDist(Point p, Point q)
+        {
+            return Math.Sqrt((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y));
         }
     }
     class Segment
@@ -1171,7 +1450,7 @@ namespace GC_C6_WPF
 
             return (val > 0) ? 1 : 2; // clock or counterclock wise
         }
-        bool onSegment(Point p, Point q, Point r)
+        static bool onSegment(Point p, Point q, Point r)
         {
             if (q.X <= Math.Max(p.X, r.X) && q.Y >= Math.Min(p.X, r.X) &&
                 q.Y <= Math.Max(p.Y, r.Y) && q.Y >= Math.Min(p.Y, r.Y))
@@ -1182,6 +1461,18 @@ namespace GC_C6_WPF
         double GetDist()
         {
             return Math.Sqrt((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y));
+        }
+        public static double GetDist(Point p, Point q)
+        {
+            return Math.Sqrt((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y));
+        }
+        public static double GetSlope(Point p, Point q)
+        {
+            if (q.X - p.X == 0)
+            {
+                return double.MaxValue;
+            }
+            else return (q.Y - p.Y) / (q.X - p.X);
         }
     }
 }

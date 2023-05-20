@@ -8,10 +8,10 @@
         Title="MainWindow" Height="800" Width="1024"
         WindowStartupLocation="CenterScreen">
     <Canvas x:Name="BigCanvas">
-        <Canvas x:Name="MainCanvas" Height="884" Width="1024">
+        <Canvas x:Name="MainCanvas" Height="784" Width="1024" HorizontalAlignment="Center" VerticalAlignment="Top">
             <Label Content="DRAW ALL POLYGONS COUNTER-CLOCKWISE!!!!" Canvas.Left="346" Canvas.Top="53" FontStyle="Italic" FontWeight="Bold" FontFamily="Verdana" Opacity="0.15"/>
         </Canvas>
-        <Button Height="20" Width="152" Canvas.Left="754" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Content="Simple -&gt; Convex Polygons" Click="SimpleToConvexPolygons"/>
+        <Button Height="20" Width="152" Canvas.Left="754" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Content="Simple -&gt; Convex Polygons" Click="SimpleToConvexPolygons" Background="#FF00D60D"/>
         <Button Content="Monoton Triangulate" Canvas.Left="291" Canvas.Top="30" HorizontalAlignment="Left" Click="MonotonTriangulate_Click" VerticalAlignment="Center" Background="#FFFFE684"/>
         <Button Content="Simple Polygon Triangulate" Canvas.Left="275" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="SimpleToMonotonPolygonsConvert" Background="#FFFFC200"/>
         <TextBlock x:Name="Area1Box" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="42"/>
@@ -37,10 +37,12 @@
         </Button>
 
         <Button Content="Polygon Triangulate" Canvas.Left="521" Canvas.Top="10" Background="#FFFBFF00" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PolyTriangulate"/>
-        <Button Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
+        <Button x:Name="ResetButton" Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
         <Line Stroke="Aquamarine" Width="380" Height="240" X1="2"></Line>
         <Button Content="Convex Triangulate" Canvas.Left="635" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="TR_Click" Background="#FFF597FF" Width="114"/>
-        <Button Content="Triangulate Random Set" Canvas.Left="76" Canvas.Top="10" Click="TriangulateRandomPts" HorizontalAlignment="Left" VerticalAlignment="Center" Width="132" BorderBrush="#FFCEFF31" Background="#FF96FF9E"/>
+        <Button Content="Triangulate Random Set" Canvas.Left="76" Canvas.Top="10" Click="TriangulateRandomPts" HorizontalAlignment="Left" VerticalAlignment="Center" Width="137" BorderBrush="#FFCEFF31" Background="#FF96FF9E"/>
         <Button Content="Area" Canvas.Left="483" Canvas.Top="30" Click="AreaClick" HorizontalAlignment="Left" VerticalAlignment="Center" Width="33" Background="#FFEDFF35"/>
+        <Button Content="Delaunay" Canvas.Left="76" Canvas.Top="35" Click="Delaunay_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="66" Background="#FFFEFF6D"/>
+        <Button Content="Voronoi" Canvas.Left="147" Canvas.Top="35" Click="Voronoi_Click" Width="66" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#FF7F6DFF"/>
     </Canvas>
 </Window>
