@@ -32,6 +32,7 @@ namespace GC_C6_WPF
         Line? last;
         Ellipse? set;
         bool _d = false;
+        bool DrawLines = true;
         bool done { get { return _d; } set { _d = value; } }
         public MainWindow()
         {
@@ -63,7 +64,7 @@ namespace GC_C6_WPF
         }
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
-            if(!done && points.Count > 0)
+            if(!done && points.Count > 0 && DrawLines)
             {
                 if(last != null)
                 {
@@ -109,7 +110,7 @@ namespace GC_C6_WPF
                 else DrawCircle(5, x, y);
                
                 Point clicked = new Point(x, y);
-                if (points.Count > 0)
+                if (points.Count > 0 && DrawLines)
                 {
                     DrawLine(points.Last(), clicked, Colors.Gray);
                 }
@@ -128,11 +129,23 @@ namespace GC_C6_WPF
 
         private void Finish_Click(object sender, RoutedEventArgs e)
         {
-
+            if (!DrawLines)
+            {
+                return;
+            }
             DrawLine(points.First(), points.Last(), Colors.Gray);
             done = true;
             MainCanvas.Children.Remove(last);
             MainCanvas.Children.Remove(set);
+        }
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            DrawLines = true;
+        }
+
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            DrawLines = false;
         }
         #endregion
         #region FrameworkUIDrawing
@@ -278,12 +291,12 @@ namespace GC_C6_WPF
         void DelaunayTriangulate()
         {
             Random rng = new Random();
-            for (int i = 0; i < 3; i++)
-            {
-                Point toadd = new Point(rng.Next(100, (int)MainCanvas.Width - 100), rng.Next(100, (int)MainCanvas.Height - 100));
-                DrawCircle(10, toadd, Colors.Black);
-                points.Add(toadd);
-            }
+            //for (int i = 0; i < 30; i++)
+            //{
+            //    Point toadd = new Point(rng.Next(100, (int)MainCanvas.Width - 100), rng.Next(100, (int)MainCanvas.Height - 100));
+            //    DrawCircle(10, toadd, Colors.Black);
+            //    points.Add(toadd);
+            //}
             for (int i = 0; i < points.Count; i++)
             {
                 for (int j = i + 1; j < points.Count; j++)
@@ -292,13 +305,17 @@ namespace GC_C6_WPF
                     {
                         Triangle trngl = new Triangle(points[i], points[j], points[k]);
                         bool ok = true;
+                        if (Math.Abs(trngl.Area()) <= 0.1)
+                        {
+                            ok = false;
+                        }
                         for (int l = 0; l < points.Count; l++)
                         {
                             if (l == i || l == j || l == k)
                             {
                                 continue;
                             }
-                            if (Segment.GetDist(points[l], trngl.CCC) <= trngl.CircumCircleRadius)
+                            if (Segment.GetDist(points[l], trngl.CCC) < trngl.CircumCircleRadius - 1)
                             {
                                 ok = false;
                                 break;
@@ -323,6 +340,10 @@ namespace GC_C6_WPF
             foreach (Triangle tr in triangles)
             {
                 DrawCircle(10, tr.CCC, Colors.Red);
+                //for (int i = 0; i < 3; i++)
+                //{
+                //    DrawLine(tr.pts[i], tr.pts[(i + 1) % 3], Colors.Gray);
+                //}
             }
             for (int i = 0; i < triangles.Count; i++)
             {
@@ -401,6 +422,10 @@ namespace GC_C6_WPF
                     }
                 }
             }
+            for(int i = 0; i < CHS.Count; i++)
+            {
+                DrawLine(CHS[i].p, CHS[i].q, Colors.Black);
+            }
             int[] chsq = new int[CHS.Count];
 
             while (triangles.Where(x => x.VoronoiLines <= 2).Any())
@@ -456,7 +481,7 @@ namespace GC_C6_WPF
                     calcpoint = new Point(cX, cY);
 
 
-                    DrawLine(tr.CCC, calcpoint, Colors.Blue);
+                    DrawLine(tr.CCC, calcpoint, Colors.ForestGreen);
                     tr.VoronoiLines++;
 
                 }
@@ -1314,15 +1339,11 @@ namespace GC_C6_WPF
         }
         double GetSlope(Point p, Point q)
         {
-            if (q.X - p.X == 0)
-            {
-                return double.MaxValue;
-            }
-            else return (q.Y - p.Y) / (q.X - p.X);
+            return Segment.GetSlope(p, q);
         }
         double GetDist(Point p, Point q)
         {
-            return Math.Sqrt((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y));
+            return Segment.GetDist(p, q);
         }
     }
     #endregion
@@ -1409,7 +1430,12 @@ namespace GC_C6_WPF
         {
             if (q.X - p.X == 0)
             {
+                //MessageBox.Show("Slight issue at slope, turned out to be infinite, whoopsie");
                 return double.MaxValue;
+            }
+            if (q.Y - p.Y == 0)
+            {
+                return 0;
             }
             else return (q.Y - p.Y) / (q.X - p.X);
         }

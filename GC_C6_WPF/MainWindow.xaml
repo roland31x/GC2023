@@ -37,12 +37,13 @@
         </Button>
 
         <Button Content="Polygon Triangulate" Canvas.Left="521" Canvas.Top="10" Background="#FFFBFF00" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PolyTriangulate"/>
-        <Button x:Name="ResetButton" Content="Reset" Canvas.Left="10" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
+        <Button x:Name="ResetButton" Content="Reset" Canvas.Left="30" Canvas.Top="10" Click="Reset_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="46" Background="#FFFF6969"/>
         <Line Stroke="Aquamarine" Width="380" Height="240" X1="2"></Line>
         <Button Content="Convex Triangulate" Canvas.Left="635" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="TR_Click" Background="#FFF597FF" Width="114"/>
-        <Button Content="Triangulate Random Set" Canvas.Left="76" Canvas.Top="10" Click="TriangulateRandomPts" HorizontalAlignment="Left" VerticalAlignment="Center" Width="137" BorderBrush="#FFCEFF31" Background="#FF96FF9E"/>
+        <Button Content="Triangulate Random Set" Canvas.Left="122" Canvas.Top="10" Click="TriangulateRandomPts" HorizontalAlignment="Left" VerticalAlignment="Center" Width="136" BorderBrush="#FFCEFF31" Background="#FF96FF9E"/>
         <Button Content="Area" Canvas.Left="483" Canvas.Top="30" Click="AreaClick" HorizontalAlignment="Left" VerticalAlignment="Center" Width="33" Background="#FFEDFF35"/>
-        <Button Content="Delaunay" Canvas.Left="76" Canvas.Top="35" Click="Delaunay_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="66" Background="#FFFEFF6D"/>
-        <Button Content="Voronoi" Canvas.Left="147" Canvas.Top="35" Click="Voronoi_Click" Width="66" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#FF7F6DFF"/>
+        <Button Content="Delaunay" Canvas.Left="122" Canvas.Top="34" Click="Delaunay_Click" HorizontalAlignment="Center" VerticalAlignment="Top" Width="66" Background="#FFFEFF6D"/>
+        <Button Content="Voronoi" Canvas.Left="192" Canvas.Top="34" Click="Voronoi_Click" Width="66" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF7F6DFF" RenderTransformOrigin="0.556,0.737"/>
+        <CheckBox Height="16" Width="86" Canvas.Top="38" Content="Draw Lines" IsChecked="True" HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="10" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
     </Canvas>
 </Window>
