@@ -480,7 +480,7 @@ namespace GC_C6_WPF
                     calcpoint = new Point(cX, cY);
 
 
-                    DrawLine(tr.CCC, calcpoint, Colors.ForestGreen);
+                    DrawLine(tr.CCC, calcpoint, Colors.Blue);
                     tr.VoronoiLines++;
                 }                   
             }          
