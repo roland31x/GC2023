@@ -422,17 +422,16 @@ namespace GC_C6_WPF
                     }
                 }
             }
-            for(int i = 0; i < CHS.Count; i++)
-            {
-                DrawLine(CHS[i].p, CHS[i].q, Colors.Black);
-            }
+            //for(int i = 0; i < CHS.Count; i++)
+            //{
+            //    DrawLine(CHS[i].p, CHS[i].q, Colors.Black);
+            //}
             int[] chsq = new int[CHS.Count];
 
-            while (triangles.Where(x => x.VoronoiLines <= 2).Any())
+            foreach (Triangle tr in triangles.Where(x => x.VoronoiLines <= 2))
             {
-                foreach (Triangle tr in triangles.Where(x => x.VoronoiLines <= 2))
+                while(tr.VoronoiLines <= 2)
                 {
-
                     double Adist = Segment.GetDist(tr.pts[0], mapcenter);
                     double Bdist = Segment.GetDist(tr.pts[1], mapcenter);
                     double Cidst = Segment.GetDist(tr.pts[2], mapcenter);
@@ -483,9 +482,8 @@ namespace GC_C6_WPF
 
                     DrawLine(tr.CCC, calcpoint, Colors.ForestGreen);
                     tr.VoronoiLines++;
-
-                }
-            }
+                }                   
+            }          
         }
         #endregion
         #region Convex Poly Triangulation
@@ -840,11 +838,11 @@ namespace GC_C6_WPF
                     }
                 }
             }
-            await Task.Delay(5000);
+            await Task.Delay(1000);
             foreach(List<Point> poligon in polygons)
             {
                 MonotonTriangulate(poligon);
-                await Task.Delay(2000);
+                await Task.Delay(1000);
 
                 //List<Line> drew = new List<Line>();
                 for (int i = 0; i < poligon.Count; i++)
@@ -1099,7 +1097,7 @@ namespace GC_C6_WPF
             stack.Pop();
             for (int i = 0; i < stack.Count - 1; i++)
             {
-                DrawLine(sorted.Last(), stack.Pop(), Colors.DarkBlue);
+                DrawLine(sorted.Last(), stack.Pop(), Colors.Gray);
             }
         }
         #endregion
